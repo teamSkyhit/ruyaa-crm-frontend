@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#4D3B55" />
+        <meta name="theme-color" content="#6D7760" />
       </head>
       <body>
         <ErrorBoundary>
