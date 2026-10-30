@@ -1,5 +1,5 @@
 const nextConfig = {
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   images: {
     unoptimized: true,
   },
@@ -74,14 +74,20 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    // Server-side proxy (useful for production where API is on same domain)
     const backendUrl = process.env.API_BASE_URL || "http://localhost:8001";
-    return [
+    const rules = [
       {
         source: "/proxy/:path*",
         destination: `${backendUrl}/api/:path*`,
       },
     ];
+    if (process.env.NEXT_PUBLIC_USE_API_PROXY === "true") {
+      rules.push({
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      });
+    }
+    return rules;
   },
 };
 
