@@ -62,7 +62,7 @@ export default function ReviewsPage() {
     queryFn: async () => {
       const res = await reviewAPI.list({ status: statusFilter, limit: 50 });
       if (!res.success) throw new Error(res.error || 'Failed to load reviews');
-      return { reviews: res.data, meta: res.meta };
+      return { reviews: res.data.reviews, meta: res.data.pagination };
     },
   });
 

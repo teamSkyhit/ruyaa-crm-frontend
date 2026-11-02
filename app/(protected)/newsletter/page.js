@@ -48,12 +48,12 @@ export default function NewsletterPage() {
     queryFn: async () => {
       const res = await newsletterAPI.list({ page, limit: 25 });
       if (!res.success) throw new Error(res.error || 'Failed to load subscribers');
-      return { subscribers: res.data, meta: res.meta };
+      return { subscribers: res.data.subscribers, meta: res.data.pagination };
     },
   });
 
   const subscribers = data?.subscribers || [];
-  const totalPages = data?.meta?.totalPages || data?.meta?.pages || 1;
+  const totalPages = data?.meta?.pages || 1;
   const total = data?.meta?.total || 0;
 
   const toggleMutation = useMutation({

@@ -50,12 +50,12 @@ export default function EnquiriesPage() {
       if (statusFilter !== 'all') params.status = statusFilter;
       const res = await enquiryAPI.list(params);
       if (!res.success) throw new Error(res.error || 'Failed to load enquiries');
-      return { enquiries: res.data, meta: res.meta };
+      return { enquiries: res.data.enquiries, meta: res.data.pagination };
     },
   });
 
   const enquiries = data?.enquiries || [];
-  const totalPages = data?.meta?.totalPages || data?.meta?.pages || 1;
+  const totalPages = data?.meta?.pages || 1;
   const total = data?.meta?.total || 0;
 
   const filtered = search.trim()
