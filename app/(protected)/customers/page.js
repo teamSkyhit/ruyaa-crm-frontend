@@ -43,13 +43,13 @@ export default function CustomersPage() {
       if (search) params.search = search;
       const res = await customerAPI.list(params);
       if (!res.success) throw new Error(res.error || 'Failed to load customers');
-      return res.data;
+      return { customers: res.data, meta: res.meta };
     },
   });
 
   const customers = data?.customers || [];
-  const totalPages = data?.meta?.pages || data?.pagination?.pages || 1;
-  const total = data?.meta?.total || data?.pagination?.total || 0;
+  const totalPages = data?.meta?.totalPages || data?.meta?.pages || 1;
+  const total = data?.meta?.total || 0;
 
   const handleSearch = (e) => {
     e.preventDefault();

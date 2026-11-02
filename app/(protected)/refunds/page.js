@@ -57,7 +57,7 @@ export default function RefundsPage() {
       if (statusFilter !== 'all') params.status = statusFilter;
       const res = await refundAPI.list(params);
       if (!res.success) throw new Error(res.error || 'Failed to load refunds');
-      return res.data;
+      return { refunds: res.data, meta: res.meta };
     },
   });
 
@@ -75,8 +75,8 @@ export default function RefundsPage() {
   });
 
   const refunds = data?.refunds || [];
-  const totalPages = data?.meta?.pages || data?.pagination?.pages || 1;
-  const total = data?.meta?.total || data?.pagination?.total || 0;
+  const totalPages = data?.meta?.totalPages || data?.meta?.pages || 1;
+  const total = data?.meta?.total || 0;
 
   return (
     <ProtectedRoute allowedRoles={['admin', 'user']}>
