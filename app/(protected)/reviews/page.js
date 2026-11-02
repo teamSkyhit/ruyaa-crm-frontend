@@ -59,10 +59,14 @@ export default function ReviewsPage() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['reviews', statusFilter],
-    queryFn: () => reviewAPI.list({ status: statusFilter, limit: 50 }),
+    queryFn: async () => {
+      const res = await reviewAPI.list({ status: statusFilter, limit: 50 });
+      if (!res.success) throw new Error(res.error || 'Failed to load reviews');
+      return { reviews: res.data, meta: res.meta };
+    },
   });
 
-  const reviews = data?.data?.reviews || [];
+  const reviews = data?.reviews || [];
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => reviewAPI.updateStatus(id, status),

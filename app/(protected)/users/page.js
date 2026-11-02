@@ -175,9 +175,13 @@ export default function UsersPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
-                                onClick={() => deactivateMutation.mutate(u.id)}
+                                onClick={() => {
+                                  if (confirm(`Delete user "${u.name}"? This cannot be undone.`)) {
+                                    deactivateMutation.mutate(u.id);
+                                  }
+                                }}
                               >
-                                <UserX className="h-4 w-4 mr-2" /> Deactivate
+                                <UserX className="h-4 w-4 mr-2" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

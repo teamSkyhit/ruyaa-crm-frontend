@@ -42,13 +42,13 @@ export default function ActivityPage() {
       if (entityType !== 'all') params.entityType = entityType;
       const res = await activityAPI.list(params);
       if (!res.success) throw new Error(res.error || 'Failed to load activity');
-      return res.data;
+      return { logs: res.data, meta: res.meta };
     },
   });
 
-  const logs = data?.logs || data?.data || [];
-  const totalPages = data?.meta?.pages || data?.pagination?.pages || 1;
-  const total = data?.meta?.total || data?.pagination?.total || 0;
+  const logs = data?.logs || [];
+  const totalPages = data?.meta?.totalPages || data?.meta?.pages || 1;
+  const total = data?.meta?.total || 0;
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
