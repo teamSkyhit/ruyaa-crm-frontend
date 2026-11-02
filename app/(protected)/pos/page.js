@@ -177,7 +177,7 @@ export default function POSPage() {
         notes: notes.trim() || undefined,
       };
 
-      const res = await apiCall('/api/public/orders', {
+      const res = await apiCall('/api/orders', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
