@@ -28,6 +28,9 @@ import {
   Star,
   BookOpen,
   LifeBuoy,
+  Terminal,
+  SlidersHorizontal,
+  MailOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -42,9 +45,12 @@ const NAV_ITEMS = [
   { name: 'Pack Cards', href: '/pack-cards', icon: ShoppingBag },
   { name: 'Categories', href: '/categories', icon: FolderTree },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
+  { name: 'Manual Order', href: '/pos', icon: Terminal },
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Refunds', href: '/refunds', icon: RotateCcw },
   { name: 'Banners', href: '/banners', icon: Image },
+  { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
+  { name: 'Email Templates', href: '/email-templates', icon: MailOpen },
   { name: 'Site Settings', href: '/site-settings', icon: Settings },
   { name: 'System Config', href: '/system-config', icon: Database },
   { name: 'FAQs', href: '/faqs', icon: HelpCircle },
