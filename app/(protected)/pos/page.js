@@ -69,7 +69,7 @@ export default function POSPage() {
       return res.data;
     },
   });
-  const products = productsData?.products || productsData?.data || [];
+  const products = productsData || [];
 
   const lookupCustomer = useCallback(async () => {
     const email = emailInput.trim().toLowerCase();

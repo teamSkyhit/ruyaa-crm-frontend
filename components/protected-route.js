@@ -22,11 +22,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         !normalizedAllowed.includes(userRole)
       ) {
         // Redirect to appropriate page based on role
-        if (userRole === 'admin') {
-          router.push('/dashboard');
-        } else {
-          router.push('/inventory');
-        }
+        router.push('/dashboard');
       }
     }
   }, [user, loading, router, allowedRoles, normalizedAllowed, userRole]);

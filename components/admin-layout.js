@@ -52,7 +52,7 @@ const NAV_ITEMS = [
   { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
   { name: 'Email Templates', href: '/email-templates', icon: MailOpen },
   { name: 'Site Settings', href: '/site-settings', icon: Settings },
-  { name: 'System Config', href: '/system-config', icon: Database },
+  { name: 'System Config', href: '/system-config', icon: Database, adminOnly: true },
   { name: 'FAQs', href: '/faqs', icon: HelpCircle },
   { name: 'Blogs', href: '/blogs', icon: BookOpen },
   { name: 'Discounts', href: '/discounts', icon: Tag },
@@ -60,8 +60,8 @@ const NAV_ITEMS = [
   { name: 'Enquiries', href: '/enquiries', icon: MessageSquare },
   { name: 'Support Tickets', href: '/tickets', icon: LifeBuoy },
   { name: 'Newsletter', href: '/newsletter', icon: Mail },
-  { name: 'Users', href: '/users', icon: Users },
-  { name: 'Activity', href: '/activity', icon: Activity },
+  { name: 'Users', href: '/users', icon: Users, adminOnly: true },
+  { name: 'Activity', href: '/activity', icon: Activity, adminOnly: true },
 ];
 
 const AdminLayout = memo(({ children }) => {
@@ -126,7 +126,7 @@ const AdminLayout = memo(({ children }) => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {NAV_ITEMS.map(({ name, href, icon: Icon }) => {
+          {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role?.toLowerCase() === 'admin').map(({ name, href, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/');
             return (
               <Link
