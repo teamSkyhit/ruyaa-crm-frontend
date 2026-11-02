@@ -10,13 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, RefreshCw } from 'lucide-react';
+import { Settings, RefreshCw, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { siteSettingsAPI } from '@/lib/api';
+import { siteSettingsAPI, systemConfigAPI } from '@/lib/api';
 import PictureUpload from '@/components/picture-upload';
 
 export default function SiteSettingsPage() {
   const qc = useQueryClient();
+  const [notifForm, setNotifForm] = useState({ from_email: '', whatsapp_api_key: '' });
   const [form, setForm] = useState({
     // Branding
     brandName: '', tagline: '', logoUrl: '', faviconUrl: '',
@@ -45,11 +46,27 @@ export default function SiteSettingsPage() {
     },
   });
 
+  const { data: configData } = useQuery({
+    queryKey: ['system-config'],
+    queryFn: async () => {
+      const res = await systemConfigAPI.list();
+      if (!res.success) throw new Error(res.error || 'Failed');
+      return res.data || [];
+    },
+  });
+
   useEffect(() => {
     if (data) {
       setForm((prev) => ({ ...prev, ...data }));
     }
   }, [data]);
+
+  useEffect(() => {
+    if (configData) {
+      const byKey = Object.fromEntries(configData.map((r) => [r.key, r.value]));
+      setNotifForm({ from_email: byKey.from_email || '', whatsapp_api_key: byKey.whatsapp_api_key || '' });
+    }
+  }, [configData]);
 
   const mutation = useMutation({
     mutationFn: (payload) => siteSettingsAPI.update(payload),
@@ -130,6 +147,7 @@ export default function SiteSettingsPage() {
               <TabsTrigger value="shipping">Shipping</TabsTrigger>
               <TabsTrigger value="seo">SEO</TabsTrigger>
               <TabsTrigger value="policies">Policies</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
             </TabsList>
 
             <TabsContent value="branding">
@@ -229,6 +247,63 @@ export default function SiteSettingsPage() {
                   <TextareaField id="termsOfService" label="Terms of Service" value={form.termsOfService} onChange={(v) => set('termsOfService', v)} rows={6} />
                   <TextareaField id="shippingPolicy" label="Shipping Policy" value={form.shippingPolicy} onChange={(v) => set('shippingPolicy', v)} rows={6} />
                   <SaveButton fields={['returnPolicy', 'privacyPolicy', 'termsOfService', 'shippingPolicy']} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="notifications">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" /> Notifications
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="from_email">Sender Email Address</Label>
+                    <p className="text-xs text-muted-foreground">Used as the From address for all outgoing emails (order confirmations, shipping updates)</p>
+                    <div className="flex gap-2">
+                      <Input
+                        id="from_email"
+                        type="email"
+                        value={notifForm.from_email}
+                        onChange={(e) => setNotifForm((p) => ({ ...p, from_email: e.target.value }))}
+                        placeholder="orders@ruyaaessentials.com"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={async () => {
+                          const res = await systemConfigAPI.set('from_email', notifForm.from_email);
+                          if (res.success) toast.success('Saved'); else toast.error(res.error || 'Failed');
+                          qc.invalidateQueries({ queryKey: ['system-config'] });
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <p className="text-sm font-medium">WhatsApp Order Alerts</p>
+                      <p className="text-xs text-muted-foreground">Send order updates via WhatsApp. Configure the API key in System Config.</p>
+                    </div>
+                    <Switch
+                      checked={!!notifForm.whatsapp_api_key}
+                      onCheckedChange={async (checked) => {
+                        if (!checked) {
+                          const res = await systemConfigAPI.set('whatsapp_api_key', '');
+                          if (res.success) { toast.success('WhatsApp alerts disabled'); setNotifForm((p) => ({ ...p, whatsapp_api_key: '' })); }
+                          else toast.error(res.error || 'Failed');
+                          qc.invalidateQueries({ queryKey: ['system-config'] });
+                        } else {
+                          toast.info('Set the WhatsApp API key in System Config to enable alerts');
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    To configure Razorpay keys or WhatsApp API credentials, go to{' '}
+                    <a href="/system-config" className="underline text-[#4A5C38]">System Config</a>.
+                  </p>
                 </CardContent>
               </Card>
             </TabsContent>

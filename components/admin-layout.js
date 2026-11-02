@@ -29,7 +29,6 @@ import {
   BookOpen,
   LifeBuoy,
   Terminal,
-  SlidersHorizontal,
   MailOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,6 @@ const NAV_ITEMS = [
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Refunds', href: '/refunds', icon: RotateCcw },
   { name: 'Banners', href: '/banners', icon: Image },
-  { name: 'Settings', href: '/settings', icon: SlidersHorizontal },
   { name: 'Email Templates', href: '/email-templates', icon: MailOpen },
   { name: 'Site Settings', href: '/site-settings', icon: Settings },
   { name: 'System Config', href: '/system-config', icon: Database, adminOnly: true },
