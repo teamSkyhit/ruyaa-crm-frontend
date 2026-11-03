@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardAPI, analyticsAPI } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import ProtectedRoute from '@/components/protected-route';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +49,8 @@ function StatCard({ title, value, icon: Icon, sub }) {
 
 function DashboardContent() {
   const [period, setPeriod] = useState('30d');
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -66,6 +69,7 @@ function DashboardContent() {
       if (!res?.success) throw new Error(res?.error || 'Failed');
       return res.data;
     },
+    enabled: isAdmin,
   });
 
   const { data: revenueData } = useQuery({
@@ -75,6 +79,7 @@ function DashboardContent() {
       if (!res?.success) throw new Error(res?.error || 'Failed');
       return res.data;
     },
+    enabled: isAdmin,
   });
 
   const { data: topProducts } = useQuery({
@@ -84,6 +89,7 @@ function DashboardContent() {
       if (!res?.success) throw new Error(res?.error || 'Failed');
       return res.data;
     },
+    enabled: isAdmin,
   });
 
   const { data: ordersByStatus } = useQuery({
@@ -93,6 +99,7 @@ function DashboardContent() {
       if (!res?.success) throw new Error(res?.error || 'Failed');
       return res.data;
     },
+    enabled: isAdmin,
   });
 
   if (isLoading) {
@@ -143,8 +150,8 @@ function DashboardContent() {
         )}
       </div>
 
-      {/* Analytics summary cards */}
-      {summary && (
+      {/* Analytics summary cards — admin only */}
+      {isAdmin && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Revenue This Month"
@@ -170,8 +177,25 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Existing stats fallback if analytics aren't available */}
-      {!summary && (
+      {/* Non-admin: orders + products stats (no revenue) */}
+      {!isAdmin && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Orders Today"
+            value={data.orders?.today ?? 0}
+            icon={ShoppingCart}
+            sub={`This week: ${data.orders?.thisWeek ?? 0}`}
+          />
+          <StatCard
+            title="Active Products"
+            value={data.products?.totalActive ?? 0}
+            icon={Package}
+          />
+        </div>
+      )}
+
+      {/* Admin fallback if analytics aren't available */}
+      {isAdmin && !summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Today's Revenue"
@@ -225,8 +249,8 @@ function DashboardContent() {
         </Card>
       )}
 
-      {/* Revenue chart with period selector */}
-      <Card>
+      {/* Revenue chart with period selector — admin only */}
+      {isAdmin && <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-semibold">Revenue Trend</CardTitle>
           <div className="flex gap-1">
@@ -258,11 +282,11 @@ function DashboardContent() {
             <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No revenue data for this period</div>
           )}
         </CardContent>
-      </Card>
+      </Card>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Products table */}
-        {topProducts && topProducts.length > 0 && (
+        {/* Top Products table — admin only */}
+        {isAdmin && topProducts && topProducts.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-semibold">Top Products</CardTitle>
