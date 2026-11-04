@@ -52,18 +52,26 @@ export default function EnquiriesPage() {
       const res = await enquiryAPI.list(params);
       if (!res.success) throw new Error(res.error || 'Export failed');
       const rows = res.data.enquiries || [];
+      // Escape CSV cell: quote all values, double-up internal quotes, and
+      // prefix with a single-quote any value that starts with a formula trigger
+      // character (=, +, -, @, tab, CR) to prevent formula injection in Excel/Sheets.
+      const csvCell = (v) => {
+        let s = String(v ?? '');
+        if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+        return '"' + s.replace(/"/g, '""') + '"';
+      };
       const headers = ['Name', 'Phone', 'Email', 'Product', 'Message', 'Status', 'Date'];
       const csv = [
         headers.join(','),
         ...rows.map((e) =>
           [
-            `"${(e.name || '').replace(/"/g, '""')}"`,
-            `"${e.phone || ''}"`,
-            `"${(e.email || '').replace(/"/g, '""')}"`,
-            `"${(e.product?.name || '').replace(/"/g, '""')}"`,
-            `"${(e.message || '').replace(/"/g, '""')}"`,
-            `"${e.status || ''}"`,
-            `"${new Date(e.createdAt).toLocaleDateString('en-IN')}"`,
+            csvCell(e.name),
+            csvCell(e.phone),
+            csvCell(e.email),
+            csvCell(e.product?.name),
+            csvCell(e.message),
+            csvCell(e.status),
+            csvCell(new Date(e.createdAt).toLocaleDateString('en-IN')),
           ].join(',')
         ),
       ].join('\n');
