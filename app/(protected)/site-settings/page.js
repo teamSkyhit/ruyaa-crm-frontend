@@ -15,6 +15,52 @@ import { toast } from 'sonner';
 import { siteSettingsAPI, systemConfigAPI } from '@/lib/api';
 import PictureUpload from '@/components/picture-upload';
 
+function Field({ id, label, value, onChange, type = 'text', placeholder }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function TextareaField({ id, label, value, onChange, rows = 5, placeholder }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Textarea id={id} rows={rows} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function SwitchField({ id, label, checked, onChange, description }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-4">
+      <div>
+        <Label htmlFor={id} className="cursor-pointer">{label}</Label>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <Switch id={id} checked={!!checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function SaveButton({ fields, form, mutation }) {
+  const handleSave = () => {
+    const payload = {};
+    fields.forEach((f) => { payload[f] = form[f]; });
+    mutation.mutate(payload);
+  };
+  return (
+    <div className="flex justify-end pt-4">
+      <Button onClick={handleSave} disabled={mutation.isPending}>
+        {mutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+        Save Changes
+      </Button>
+    </div>
+  );
+}
+
 export default function SiteSettingsPage() {
   const qc = useQueryClient();
   const [notifForm, setNotifForm] = useState({ from_email: '', whatsapp_api_key: '' });
@@ -83,45 +129,6 @@ export default function SiteSettingsPage() {
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  const saveTab = (fields) => {
-    const payload = {};
-    fields.forEach((f) => { payload[f] = form[f]; });
-    mutation.mutate(payload);
-  };
-
-  const Field = ({ id, label, value, onChange, type = 'text', placeholder }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-    </div>
-  );
-
-  const TextareaField = ({ id, label, value, onChange, rows = 5, placeholder }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Textarea id={id} rows={rows} value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-    </div>
-  );
-
-  const SwitchField = ({ id, label, checked, onChange, description }) => (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div>
-        <Label htmlFor={id} className="cursor-pointer">{label}</Label>
-        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
-      </div>
-      <Switch id={id} checked={!!checked} onCheckedChange={onChange} />
-    </div>
-  );
-
-  const SaveButton = ({ fields }) => (
-    <div className="flex justify-end pt-4">
-      <Button onClick={() => saveTab(fields)} disabled={mutation.isPending}>
-        {mutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
-        Save Changes
-      </Button>
-    </div>
-  );
-
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="space-y-6">
@@ -158,7 +165,7 @@ export default function SiteSettingsPage() {
                   <Field id="tagline" label="Tagline" value={form.tagline} onChange={(v) => set('tagline', v)} />
                   <PictureUpload folder="brand" label="Logo" optional value={form.logoUrl} onChange={(logoUrl) => set('logoUrl', logoUrl)} />
                   <PictureUpload folder="brand" label="Favicon" optional value={form.faviconUrl} onChange={(faviconUrl) => set('faviconUrl', faviconUrl)} />
-                  <SaveButton fields={['brandName', 'tagline', 'logoUrl', 'faviconUrl']} />
+                  <SaveButton fields={['brandName', 'tagline', 'logoUrl', 'faviconUrl']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -182,7 +189,7 @@ export default function SiteSettingsPage() {
                       <Field id="pinterestUrl" label="Pinterest" value={form.pinterestUrl} onChange={(v) => set('pinterestUrl', v)} placeholder="https://pinterest.com/..." />
                     </div>
                   </div>
-                  <SaveButton fields={['contactEmail', 'contactPhone', 'whatsappNumber', 'address', 'instagramUrl', 'facebookUrl', 'youtubeUrl', 'pinterestUrl']} />
+                  <SaveButton fields={['contactEmail', 'contactPhone', 'whatsappNumber', 'address', 'instagramUrl', 'facebookUrl', 'youtubeUrl', 'pinterestUrl']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -204,7 +211,7 @@ export default function SiteSettingsPage() {
                     <Field id="announcementBarText" label="Announcement Text" value={form.announcementBarText} onChange={(v) => set('announcementBarText', v)} />
                     <Field id="announcementBarLink" label="Announcement Link" value={form.announcementBarLink} onChange={(v) => set('announcementBarLink', v)} placeholder="https://..." />
                   </div>
-                  <SaveButton fields={['heroTitle', 'heroSubtitle', 'heroCTAText', 'aboutTitle', 'aboutText', 'announcementBarEnabled', 'announcementBarText', 'announcementBarLink']} />
+                  <SaveButton fields={['heroTitle', 'heroSubtitle', 'heroCTAText', 'aboutTitle', 'aboutText', 'announcementBarEnabled', 'announcementBarText', 'announcementBarLink']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -220,7 +227,7 @@ export default function SiteSettingsPage() {
                   </div>
                   <SwitchField id="codEnabled" label="Cash on Delivery (COD)" description="Allow customers to pay on delivery" checked={form.codEnabled} onChange={(v) => set('codEnabled', v)} />
                   <SwitchField id="orderConfirmationEmailEnabled" label="Order Confirmation Email" description="Send email to customer when order is placed" checked={form.orderConfirmationEmailEnabled} onChange={(v) => set('orderConfirmationEmailEnabled', v)} />
-                  <SaveButton fields={['shippingCharge', 'freeShippingThreshold', 'estimatedDeliveryDays', 'codEnabled', 'orderConfirmationEmailEnabled']} />
+                  <SaveButton fields={['shippingCharge', 'freeShippingThreshold', 'estimatedDeliveryDays', 'codEnabled', 'orderConfirmationEmailEnabled']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -233,7 +240,7 @@ export default function SiteSettingsPage() {
                   <TextareaField id="defaultMetaDescription" label="Default Meta Description" value={form.defaultMetaDescription} onChange={(v) => set('defaultMetaDescription', v)} rows={3} />
                   <Field id="googleAnalyticsId" label="Google Analytics ID" value={form.googleAnalyticsId} onChange={(v) => set('googleAnalyticsId', v)} placeholder="G-XXXXXXXXXX" />
                   <Field id="googleSearchConsoleVerification" label="Google Search Console Verification" value={form.googleSearchConsoleVerification} onChange={(v) => set('googleSearchConsoleVerification', v)} />
-                  <SaveButton fields={['defaultMetaTitle', 'defaultMetaDescription', 'googleAnalyticsId', 'googleSearchConsoleVerification']} />
+                  <SaveButton fields={['defaultMetaTitle', 'defaultMetaDescription', 'googleAnalyticsId', 'googleSearchConsoleVerification']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -246,7 +253,7 @@ export default function SiteSettingsPage() {
                   <TextareaField id="privacyPolicy" label="Privacy Policy" value={form.privacyPolicy} onChange={(v) => set('privacyPolicy', v)} rows={6} />
                   <TextareaField id="termsOfService" label="Terms of Service" value={form.termsOfService} onChange={(v) => set('termsOfService', v)} rows={6} />
                   <TextareaField id="shippingPolicy" label="Shipping Policy" value={form.shippingPolicy} onChange={(v) => set('shippingPolicy', v)} rows={6} />
-                  <SaveButton fields={['returnPolicy', 'privacyPolicy', 'termsOfService', 'shippingPolicy']} />
+                  <SaveButton fields={['returnPolicy', 'privacyPolicy', 'termsOfService', 'shippingPolicy']} form={form} mutation={mutation} />
                 </CardContent>
               </Card>
             </TabsContent>
