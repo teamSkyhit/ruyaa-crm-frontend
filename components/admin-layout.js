@@ -33,6 +33,16 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import Loader from '@/components/ui/loader';
 import { subscribeToNetworkStatus } from '@/lib/network-tracker';
 import { notificationAPI } from '@/lib/api';
@@ -68,6 +78,7 @@ const AdminLayout = memo(({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: inbox } = useQuery({
@@ -145,6 +156,7 @@ const AdminLayout = memo(({ children }) => {
             <Link
               key={href}
               href={href}
+              onClick={() => setSidebarOpen(false)}
               className={cn(
                 'flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors',
                 active
@@ -173,7 +185,7 @@ const AdminLayout = memo(({ children }) => {
           </div>
         </div>
         <button
-          onClick={logout}
+          onClick={() => setLogoutConfirm(true)}
           className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
@@ -298,6 +310,26 @@ const AdminLayout = memo(({ children }) => {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
+
+      <AlertDialog open={logoutConfirm} onOpenChange={setLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out of your account and redirected to the login page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={logout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Log out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });

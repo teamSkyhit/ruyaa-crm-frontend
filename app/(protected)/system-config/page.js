@@ -149,6 +149,7 @@ export default function SystemConfigPage() {
                                 onChange={(e) => setEditValue(e.target.value)}
                                 className="h-8 text-sm"
                                 autoFocus
+                                onFocus={(e) => e.target.select()}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') saveEdit(cfg.key);
                                   if (e.key === 'Escape') cancelEdit();

@@ -16,7 +16,7 @@ import {
   Pagination, PaginationContent, PaginationItem,
   PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
-import { MessageSquare, Phone, Mail, Package, RefreshCw, Search } from 'lucide-react';
+import { MessageSquare, Phone, Mail, Package, RefreshCw, Search, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { enquiryAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,44 @@ export default function EnquiriesPage() {
   const [editNotes, setEditNotes] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const exportCSV = async () => {
+    setExporting(true);
+    try {
+      const params = { page: 1, limit: 10000 };
+      if (statusFilter !== 'all') params.status = statusFilter;
+      const res = await enquiryAPI.list(params);
+      if (!res.success) throw new Error(res.error || 'Export failed');
+      const rows = res.data.enquiries || [];
+      const headers = ['Name', 'Phone', 'Email', 'Product', 'Message', 'Status', 'Date'];
+      const csv = [
+        headers.join(','),
+        ...rows.map((e) =>
+          [
+            `"${(e.name || '').replace(/"/g, '""')}"`,
+            `"${e.phone || ''}"`,
+            `"${(e.email || '').replace(/"/g, '""')}"`,
+            `"${(e.product?.name || '').replace(/"/g, '""')}"`,
+            `"${(e.message || '').replace(/"/g, '""')}"`,
+            `"${e.status || ''}"`,
+            `"${new Date(e.createdAt).toLocaleDateString('en-IN')}"`,
+          ].join(',')
+        ),
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `enquiries${statusFilter !== 'all' ? `-${statusFilter.toLowerCase()}` : ''}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(err.message || 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['enquiries', { page, statusFilter }],
@@ -108,7 +146,7 @@ export default function EnquiriesPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -117,10 +155,16 @@ export default function EnquiriesPage() {
               {total} lead{total !== 1 ? 's' : ''} from the website
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ['enquiries'] })} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportCSV} disabled={exporting || isLoading}>
+              <Download className={`h-4 w-4 mr-2 ${exporting ? 'animate-pulse' : ''}`} />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ['enquiries'] })} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">

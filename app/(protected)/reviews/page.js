@@ -70,11 +70,27 @@ export default function ReviewsPage() {
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => reviewAPI.updateStatus(id, status),
-    onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: ['reviews', statusFilter] });
+      const previous = queryClient.getQueryData(['reviews', statusFilter]);
+      queryClient.setQueryData(['reviews', statusFilter], (old) => {
+        if (!old) return old;
+        return { ...old, reviews: old.reviews.filter((r) => r.id !== id) };
+      });
+      return { previous };
+    },
+    onError: (e, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['reviews', statusFilter], context.previous);
+      }
+      toast.error(e.message || 'Failed to update review');
+    },
+    onSuccess: (_data, { status }) => {
       toast.success(status === 'APPROVED' ? 'Review approved' : 'Review rejected');
     },
-    onError: (e) => toast.error(e.message || 'Failed to update review'),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    },
   });
 
   const deleteMutation = useMutation({
