@@ -139,7 +139,7 @@ export default function BannersPage() {
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   return (
-    <ProtectedRoute allowedRoles={['admin']}>
+    <ProtectedRoute>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
