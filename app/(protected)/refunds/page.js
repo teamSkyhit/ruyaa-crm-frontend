@@ -79,7 +79,7 @@ export default function RefundsPage() {
   const total = data?.meta?.total || 0;
 
   return (
-    <ProtectedRoute allowedRoles={['admin', 'user']}>
+    <ProtectedRoute allowedRoles={['admin']}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
